@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baukasten: Russische Adjektiv-Endungen</title>
+    <style>
+        :root {
+            --primary-blue: #0039a6;
+            --primary-red: #d52b1e;
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --correct-green: #28a745;
+            --wrong-red: #dc3545;
+            --text-main: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background: #eef2ff;
+            border-left: 6px solid var(--primary-blue);
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .puzzle-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .puzzle-card {
+            border: 1px solid #e0e6ed;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #fafbfc;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .word-preview {
+            font-size: 1.4rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px dashed #ccc;
+        }
+
+        .stem { color: #333; }
+        .ending-placeholder { 
+            color: var(--primary-blue); 
+            border-bottom: 2px solid var(--primary-blue);
+            min-width: 40px;
+            display: inline-block;
+        }
+
+        .task-info {
+            font-size: 0.85rem;
+            color: #666;
+            text-align: center;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .options-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .option-btn {
+            padding: 8px 16px;
+            border: 2px solid #ced4da;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary-blue);
+            background-color: #f0f7ff;
+        }
+
+        /* Feedback-Zustände */
+        .option-btn.correct {
+            background-color: var(--correct-green) !important;
+            border-color: var(--correct-green) !important;
+            color: white !important;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-red) !important;
+            border-color: var(--wrong-red) !important;
+            color: white !important;
+        }
+
+        .ending-placeholder.correct-text {
+            color: var(--correct-green);
+            border-bottom-color: var(--correct-green);
+        }
+
+        .ending-placeholder.wrong-text {
+            color: var(--wrong-red);
+            border-bottom-color: var(--wrong-red);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        button.main-ctrl {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-reset { background-color: #6c757d; }
+        .btn-solution { background-color: var(--primary-blue); }
+        button.main-ctrl:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Endungs-Baukasten</h1>
+    
+    <div class="intro">
+        <strong>Anleitung:</strong> Vervollständige die russischen Adjektive. Klicke auf die richtige Endung, die zur angegebenen Form (Genus/Numerus) passt. Achte besonders auf die Stamm-Konsonanten!
+    </div>
+
+    <div class="puzzle-grid" id="puzzleGrid">
+        <!-- Aufgaben werden per JavaScript geladen -->
+    </div>
+
+    <div class="controls">
+        <button class="main-ctrl btn-reset" onclick="resetAll()">Zurücksetzen</button>
+        <button class="main-ctrl btn-solution" onclick="showAllSolutions()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    const tasks = [
+        { id: 1, stem: "маленьк-", target: "Plural", options: ["-ые", "-ие", "-ая"], correct: "-ие" },
+        { id: 2, stem: "нов-", target: "Femininum", options: ["-ая", "-яя", "-ое"], correct: "-ая" },
+        { id: 3, stem: "син-", target: "Neutrum", options: ["-ое", "-ее", "-ие"], correct: "-ее" },
+        { id: 4, stem: "больш-", target: "Maskulinum (betont)", options: ["-ый", "-ий", "-ой"], correct: "-ой" },
+        { id: 5, stem: "хорош-", target: "Plural", options: ["-ые", "-ие", "-ая"], correct: "-ие" },
+        { id: 6, stem: "летн-", target: "Femininum", options: ["-ая", "-яя", "-ие"], correct: "-яя" },
+        { id: 7, stem: "русск-", target: "Plural", options: ["-ые", "-ие", "-ий"], correct: "-ие" },
+        { id: 8, stem: "дорог-", target: "Maskulinum (betont)", options: ["-ый", "-ий", "-ой"], correct: "-ой" },
+        { id: 9, stem: "свеж-", target: "Neutrum", options: ["-оe", "-ee", "-ая"], correct: "-ee" },
+        { id: 10, stem: "высоких-", target: "Plural", options: ["-ые", "-ие", "-яя"], correct: "-ие" },
+        { id: 11, stem: "добр-", target: "Maskulinum", options: ["-ый", "-ий", "-ой"], correct: "-ый" },
+        { id: 12, stem: "последн-", target: "Plural", options: ["-ые", "-ие", "-яя"], correct: "-ие" }
+    ];
+
+    function initGrid() {
+        const grid = document.getElementById('puzzleGrid');
+        grid.innerHTML = '';
+        
+        tasks.forEach(task => {
+            const card = document.createElement('div');
+            card.className = 'puzzle-card';
+            card.id = `card-${task.id}`;
+            
+            card.innerHTML = `
+                <div class="word-preview">
+                    <span class="stem">${task.stem}</span><span class="ending-placeholder" id="placeholder-${task.id}">...</span>
+                </div>
+                <div class="task-info">Gesucht: ${task.target}</div>
+                <div class="options-pool">
+                    ${task.options.map(opt => `
+                        <button class="option-btn" onclick="checkChoice(${task.id}, '${opt}', '${task.correct}')">${opt}</button>
+                    `).join('')}
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function checkChoice(taskId, chosen, correct) {
+        const placeholder = document.getElementById(`placeholder-${taskId}`);
+        const card = document.getElementById(`card-${taskId}`);
+        const buttons = card.querySelectorAll('.option-btn');
+        
+        // Reset button states for this card
+        buttons.forEach(btn => {
+            btn.classList.remove('correct', 'wrong');
+            if (btn.innerText === chosen) {
+                if (chosen === correct) {
+                    btn.classList.add('correct');
+                    placeholder.innerText = chosen;
+                    placeholder.className = "ending-placeholder correct-text";
+                } else {
+                    btn.classList.add('wrong');
+                    placeholder.innerText = chosen;
+                    placeholder.className = "ending-placeholder wrong-text";
+                }
+            }
+        });
+    }
+
+    function resetAll() {
+        initGrid();
+    }
+
+    function showAllSolutions() {
+        tasks.forEach(task => {
+            const placeholder = document.getElementById(`placeholder-${task.id}`);
+            const card = document.getElementById(`card-${task.id}`);
+            const buttons = card.querySelectorAll('.option-btn');
+            
+            placeholder.innerText = task.correct;
+            placeholder.className = "ending-placeholder correct-text";
+            
+            buttons.forEach(btn => {
+                btn.classList.remove('correct', 'wrong');
+                if (btn.innerText === task.correct) {
+                    btn.classList.add('correct');
+                }
+            });
+        });
+    }
+
+    // Start
+    window.onload = initGrid;
+</script>
+
+</body>
+</html>
