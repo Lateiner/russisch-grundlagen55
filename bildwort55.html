@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bild-Wort-Check: 20 Russische Adjektive</title>
+    <style>
+        :root {
+            --primary-blue: #0039a6;
+            --primary-red: #d52b1e;
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --correct-green: #28a745;
+            --wrong-red: #dc3545;
+            --text-main: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            font-weight: normal;
+        }
+
+        .intro {
+            background: #eef2ff;
+            border-left: 6px solid var(--primary-blue);
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Responsive Grid */
+        .exercise-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .task-card {
+            border: 1px solid #e0e6ed;
+            padding: 15px;
+            border-radius: 12px;
+            background-color: #fafbfc;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: box-shadow 0.3s;
+        }
+
+        .task-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .emoji-display {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+        }
+
+        .noun-info {
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #444;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .option-btn {
+            padding: 8px;
+            border: 2px solid #ced4da;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--primary-blue);
+            background-color: #f0f7ff;
+        }
+
+        /* Feedback-Zustände */
+        .option-btn.correct {
+            background-color: var(--correct-green) !important;
+            border-color: var(--correct-green) !important;
+            color: white !important;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-red) !important;
+            border-color: var(--wrong-red) !important;
+            color: white !important;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px solid #eee;
+            flex-wrap: wrap;
+        }
+
+        button.main-ctrl {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 1rem;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        button.main-ctrl:active {
+            transform: scale(0.98);
+        }
+
+        .btn-reset { background-color: #6c757d; }
+        .btn-solution { background-color: var(--primary-blue); }
+        button.main-ctrl:hover { opacity: 0.9; }
+
+        @media (max-width: 500px) {
+            .exercise-grid { grid-template-columns: 1fr; }
+            .container { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Bild-Wort-Check</h1>
+    <h2>20 Übungen zu russischen Adjektiv-Endungen</h2>
+    
+    <div class="intro">
+        <strong>Anleitung:</strong> Wähle das Adjektiv mit der Endung aus, die zum Geschlecht (m, f, n) des Substantivs passt. 
+        <br>Feedback erfolgt <strong>sofort</strong>: <span style="color:var(--correct-green);font-weight:bold;">Grün = Richtig</span>, <span style="color:var(--wrong-red);font-weight:bold;">Rot = Falsch</span>.
+    </div>
+
+    <div class="exercise-grid" id="exerciseGrid">
+        <!-- JS-Injektion -->
+    </div>
+
+    <div class="controls">
+        <button class="main-ctrl btn-reset" onclick="resetAll()">Alle zurücksetzen</button>
+        <button class="main-ctrl btn-solution" onclick="showAllSolutions()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    const tasks = [
+        { id: 1, emoji: "🔵", noun: "мяч (Ball, m.)", options: ["синий", "синяя", "синее"], correct: "синий" },
+        { id: 2, emoji: "⬜", noun: "флаг (Flagge, m.)", options: ["белый", "белая", "белое"], correct: "белый" },
+        { id: 3, emoji: "🍎", noun: "яблоко (Apfel, n.)", options: ["свежий", "свежая", "свежее"], correct: "свежее" },
+        { id: 4, emoji: "🟦", noun: "небо (Himmel, n.)", options: ["голубой", "голубая", "голубое"], correct: "голубое" },
+        { id: 5, emoji: "☀️", noun: "солнце (Sonne, n.)", options: ["большой", "большая", "большое"], correct: "большое" },
+        { id: 6, emoji: "🌸", noun: "роза (Rose, f.)", options: ["маленький", "маленькая", "маленькое"], correct: "маленькая" },
+        { id: 7, emoji: "🏠", noun: "дом (Haus, m.)", options: ["новый", "новая", "новое"], correct: "новый" },
+        { id: 8, emoji: "📖", noun: "книга (Buch, f.)", options: ["русский", "русская", "русское"], correct: "русская" },
+        { id: 9, emoji: "👕", noun: "футболka (Shirt, f.)", options: ["синий", "синяя", "синее"], correct: "синяя" },
+        { id: 10, emoji: "☕", noun: "кофе (Kaffee, m.!)", options: ["горячий", "горячая", "горячее"], correct: "горячий" },
+        { id: 11, emoji: "🚗", noun: "машина (Auto, f.)", options: ["красный", "красная", "красное"], correct: "красная" },
+        { id: 12, emoji: "🌲", noun: "дерево (Baum, n.)", options: ["зелёный", "зелёная", "зелёное"], correct: "зелёное" },
+        { id: 13, emoji: "🍋", noun: "лимон (Zitrone, m.)", options: ["жёлтый", "жёлтая", "жёлтое"], correct: "жёлтый" },
+        { id: 14, emoji: "❄️", noun: "вода (Wasser, f.)", options: ["холодный", "холодная", "холодное"], correct: "холодная" },
+        { id: 15, emoji: "🐈", noun: "кот (Kater, m.)", options: ["чёрный", "чёрная", "чёрное"], correct: "чёрный" },
+        { id: 16, emoji: "🍵", noun: "чай (Tee, m.)", options: ["крепкий", "крепкая", "крепкое"], correct: "крепкий" },
+        { id: 17, emoji: "🥖", noun: "хлеб (Brot, m.)", options: ["свежий", "свежая", "свежее"], correct: "свежий" },
+        { id: 18, emoji: "🌅", noun: "вечер (Abend, m.)", options: ["вечерний", "вечерняя", "вечернее"], correct: "вечерний" },
+        { id: 19, emoji: "🌻", noun: "цветок (Blume, m.)", options: ["красивый", "красивая", "красивое"], correct: "красивый" },
+        { id: 20, emoji: "🧸", noun: "игрушка (Spielzeug, f.)", options: ["дорогой", "дорогая", "дорогое"], correct: "дорогая" }
+    ];
+
+    function initExercises() {
+        const grid = document.getElementById('exerciseGrid');
+        grid.innerHTML = '';
+        
+        tasks.forEach(task => {
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.id = `card-${task.id}`;
+            
+            card.innerHTML = `
+                <div>
+                    <div class="emoji-display">${task.emoji}</div>
+                    <div class="noun-info">${task.noun}</div>
+                </div>
+                <div class="options-container">
+                    ${task.options.map(opt => `
+                        <button class="option-btn" onclick="handleChoice(this, ${task.id}, '${opt}', '${task.correct}')">${opt}</button>
+                    `).join('')}
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function handleChoice(btn, taskId, selected, correct) {
+        const card = document.getElementById(`card-${taskId}`);
+        const buttons = card.querySelectorAll('.option-btn');
+        
+        // Buttons der Karte zurücksetzen
+        buttons.forEach(b => b.classList.remove('correct', 'wrong'));
+        
+        // Feedback
+        if (selected === correct) {
+            btn.classList.add('correct');
+        } else {
+            btn.classList.add('wrong');
+        }
+    }
+
+    function resetAll() {
+        initExercises();
+    }
+
+    function showAllSolutions() {
+        tasks.forEach(task => {
+            const card = document.getElementById(`card-${task.id}`);
+            const buttons = card.querySelectorAll('.option-btn');
+            
+            buttons.forEach(btn => {
+                btn.classList.remove('wrong');
+                if (btn.innerText === task.correct) {
+                    btn.classList.add('correct');
+                } else {
+                    btn.classList.remove('correct');
+                }
+            });
+        });
+    }
+
+    // Beim Laden starten
+    window.onload = initExercises;
+</script>
+
+</body>
+</html>
