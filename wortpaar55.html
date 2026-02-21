@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wort-Paar-Matching: Russische Adjektive</title>
+    <!-- Polyfill für Drag and Drop auf Touch-Geräten -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-blue: #0039a6;
+            --primary-red: #d52b1e;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --correct-green: #28a745;
+            --wrong-red: #dc3545;
+            --text-color: #333;
+            --item-height: 55px; /* Einheitliche Höhe für alle Boxen */
+        }
+
+        body {
+            font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 1.8rem;
+        }
+
+        h2 {
+            color: var(--primary-red);
+            text-align: center;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            font-weight: 400;
+        }
+
+        .intro {
+            background: #eef2ff;
+            border-left: 5px solid var(--primary-blue);
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Das Haupt-Grid */
+        .matching-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+            align-items: start;
+        }
+
+        .column-title {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary-blue);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1.5px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        /* Pool auf der linken Seite */
+        .drag-pool {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Die ziehbaren Kärtchen */
+        .drag-item {
+            background: white;
+            border: 2px solid var(--primary-blue);
+            height: var(--item-height);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: grab;
+            font-weight: bold;
+            font-size: 1.05rem;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            user-select: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .drag-item:active { cursor: grabbing; }
+        .drag-item.dragging { opacity: 0.4; transform: scale(0.98); }
+
+        /* Ziel-Liste auf der rechten Seite */
+        .drop-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .drop-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            height: var(--item-height);
+            align-items: stretch;
+        }
+
+        .target-word {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 1rem;
+        }
+
+        .drop-zone {
+            border: 2px dashed #cbd5e0;
+            background: #fff;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .drop-zone.hover {
+            background: #ebf4ff;
+            border-color: var(--primary-blue);
+            border-style: solid;
+        }
+
+        /* Feedback-Zustände innerhalb der Zone */
+        .drop-zone .drag-item {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 6px;
+        }
+
+        .correct {
+            background-color: var(--correct-green) !important;
+            color: white !important;
+        }
+
+        .wrong {
+            background-color: var(--wrong-red) !important;
+            color: white !important;
+        }
+
+        /* Buttons */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 25px;
+        }
+
+        button {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 0.95rem;
+            transition: transform 0.1s, opacity 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        button:active { transform: scale(0.96); }
+        .btn-reset { background-color: #6c757d; }
+        .btn-solution { background-color: var(--primary-blue); }
+        button:hover { opacity: 0.9; }
+
+        /* Responsive Anpassung */
+        @media (max-width: 700px) {
+            .matching-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+            .source-column { order: 2; }
+            .target-column { order: 1; }
+            .container { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Russische Adjektive</h1>
+    <h2>Wort-Paar-Matching: Maskulinum &rarr; Femininum</h2>
+
+    <div class="intro">
+        <strong>So geht's:</strong> Ziehe die Kärtchen aus der linken Spalte (Maskulinum) in die freien Felder der rechten Spalte neben die passende feminine Form. 
+        <br>Richtig = <strong>Grün</strong> | Falsch = <strong>Rot</strong>.
+    </div>
+
+    <div class="matching-grid">
+        <!-- Linke Spalte: Pool -->
+        <div class="source-column">
+            <div class="column-title">Pool: Maskulinum</div>
+            <div id="dragPool" class="drag-pool"></div>
+        </div>
+
+        <!-- Rechte Spalte: Ziele -->
+        <div class="target-column">
+            <div class="column-title">Ziel: Femininum</div>
+            <div id="dropList" class="drop-list"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="resetGame()">Zurücksetzen</button>
+        <button class="btn-solution" onclick="showSolution()">Lösung anzeigen</button>
+    </div>
+</div>
+
+<script>
+    const adjectivePairs = [
+        { m: "новый", f: "новая" },
+        { m: "синий", f: "синяя" },
+        { m: "большой", f: "большая" },
+        { m: "молодой", f: "молодая" },
+        { m: "русский", f: "русская" },
+        { m: "хороший", f: "хорошая" },
+        { m: "высокий", f: "высокая" },
+        { m: "свежий", f: "свежая" },
+        { m: "летний", f: "летняя" },
+        { m: "англо-русский", f: "англо-русская" }
+    ];
+
+    let draggedItem = null;
+
+    function initGame() {
+        const dragPool = document.getElementById('dragPool');
+        const dropList = document.getElementById('dropList');
+        
+        dragPool.innerHTML = '';
+        dropList.innerHTML = '';
+
+        // Zufälliges Mischen der Kärtchen
+        const shuffledMasc = [...adjectivePairs].sort(() => Math.random() - 0.5);
+        // Die Zielwörter bleiben in einer festen (aber gewürfelten) Reihenfolge pro Spiel
+        const shuffledFem = [...adjectivePairs].sort(() => Math.random() - 0.5);
+
+        shuffledMasc.forEach(pair => {
+            const item = document.createElement('div');
+            item.className = 'drag-item';
+            item.draggable = true;
+            item.innerText = pair.m;
+            item.dataset.masc = pair.m;
+            
+            item.addEventListener('dragstart', handleDragStart);
+            item.addEventListener('dragend', handleDragEnd);
+            dragPool.appendChild(item);
+        });
+
+        shuffledFem.forEach(pair => {
+            const row = document.createElement('div');
+            row.className = 'drop-row';
+            
+            const targetWord = document.createElement('div');
+            targetWord.className = 'target-word';
+            targetWord.innerText = pair.f;
+
+            const zone = document.createElement('div');
+            zone.className = 'drop-zone';
+            zone.dataset.correctMasc = pair.m;
+
+            zone.addEventListener('dragover', handleDragOver);
+            zone.addEventListener('dragleave', handleDragLeave);
+            zone.addEventListener('drop', handleDrop);
+
+            row.appendChild(targetWord);
+            row.appendChild(zone);
+            dropList.appendChild(row);
+        });
+    }
+
+    function handleDragStart(e) {
+        draggedItem = this;
+        this.classList.add('dragging');
+        // Sicherstellen, dass das Element beim Ziehen sichtbar bleibt
+        e.dataTransfer.setData('text/plain', ''); 
+    }
+
+    function handleDragEnd() {
+        this.classList.remove('dragging');
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        this.classList.add('hover');
+    }
+
+    function handleDragLeave() {
+        this.classList.remove('hover');
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        this.classList.remove('hover');
+        
+        // Falls schon ein Kärtchen in der Zone liegt, schiebe es zurück in den Pool
+        if (this.children.length > 0) {
+            document.getElementById('dragPool').appendChild(this.children[0]);
+        }
+        
+        this.appendChild(draggedItem);
+        checkResult(draggedItem, this);
+    }
+
+    function checkResult(item, zone) {
+        if (item.dataset.masc === zone.dataset.correctMasc) {
+            item.classList.add('correct');
+            item.classList.remove('wrong');
+        } else {
+            item.classList.add('wrong');
+            item.classList.remove('correct');
+        }
+    }
+
+    function resetGame() {
+        initGame();
+    }
+
+    function showSolution() {
+        const zones = document.querySelectorAll('.drop-zone');
+        zones.forEach(zone => {
+            const correctMascValue = zone.dataset.correctMasc;
+            const correctItem = document.querySelector(`[data-masc="${correctMascValue}"]`);
+            
+            zone.appendChild(correctItem);
+            correctItem.classList.add('correct');
+            correctItem.classList.remove('wrong');
+        });
+    }
+
+    window.onload = initGame;
+</script>
+
+</body>
+</html>
