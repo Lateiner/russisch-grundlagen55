@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stamm-Detektiv: Russische Adjektivgruppen</title>
+    <style>
+        :root {
+            --primary-blue: #0039a6;
+            --primary-red: #d52b1e;
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --correct-green: #28a745;
+            --wrong-red: #dc3545;
+            --text-main: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            font-weight: normal;
+        }
+
+        .intro {
+            background: #eef2ff;
+            border-left: 6px solid var(--primary-blue);
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Responsive Grid */
+        .exercise-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .task-card {
+            border: 1px solid #e0e6ed;
+            padding: 15px;
+            border-radius: 12px;
+            background-color: #fafbfc;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+
+        .word-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .instruction-small {
+            font-size: 0.8rem;
+            color: #777;
+            margin-bottom: 10px;
+        }
+
+        .options-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .letter-btn {
+            width: 45px;
+            height: 45px;
+            border: 2px solid #ced4da;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: var(--text-main);
+        }
+
+        .letter-btn:hover:not(.disabled) {
+            border-color: var(--primary-blue);
+            background-color: #f0f7ff;
+        }
+
+        /* Feedback-Zustände */
+        .letter-btn.correct {
+            background-color: var(--correct-green) !important;
+            border-color: var(--correct-green) !important;
+            color: white !important;
+        }
+
+        .letter-btn.wrong {
+            background-color: var(--wrong-red) !important;
+            border-color: var(--wrong-red) !important;
+            color: white !important;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px solid #eee;
+            flex-wrap: wrap;
+        }
+
+        button.main-ctrl {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 1rem;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        button.main-ctrl:active {
+            transform: scale(0.98);
+        }
+
+        .btn-reset { background-color: #6c757d; }
+        .btn-solution { background-color: var(--primary-blue); }
+        button.main-ctrl:hover { opacity: 0.9; }
+
+        @media (max-width: 500px) {
+            .exercise-grid { grid-template-columns: 1fr; }
+            .container { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Stamm-Detektiv</h1>
+    <h2>Identifikation des Schlüssel-Konsonanten</h2>
+    
+    <div class="intro">
+        <strong>Anleitung:</strong> Welcher Konsonant im Wortstamm bestimmt die Gruppe des Adjektivs? 
+        Klicke auf den <strong>entscheidenden Buchstaben</strong> direkt vor der Endung.
+        <br>Feedback erfolgt <strong>sofort</strong>: <span style="color:var(--correct-green);font-weight:bold;">Grün = Richtig</span>, <span style="color:var(--wrong-red);font-weight:bold;">Rot = Falsch</span>.
+    </div>
+
+    <div class="exercise-grid" id="exerciseGrid">
+        <!-- JS-Injektion -->
+    </div>
+
+    <div class="controls">
+        <button class="main-ctrl btn-reset" onclick="initExercises(true)">Zurücksetzen und mischen</button>
+        <button class="main-ctrl btn-solution" onclick="showAllSolutions()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    // Ursprüngliche Liste der Aufgaben
+    const tasksData = [
+        { word: "русский", options: ["р", "с", "к"], correct: "к" },
+        { word: "хороший", options: ["р", "ш", "и"], correct: "ш" },
+        { word: "синий", options: ["с", "и", "н"], correct: "н" },
+        { word: "маленький", options: ["л", "н", "к"], correct: "к" },
+        { word: "горячий", options: ["р", "ч", "я"], correct: "ч" },
+        { word: "высокий", options: ["в", "с", "к"], correct: "к" },
+        { word: "последний", options: ["л", "д", "н"], correct: "н" },
+        { word: "свежий", options: ["с", "в", "ж"], correct: "ж" },
+        { word: "тихий", options: ["т", "и", "х"], correct: "х" },
+        { word: "немецкий", options: ["м", "ц", "к"], correct: "к" },
+        { word: "младший", options: ["л", "д", "ш"], correct: "ш" },
+        { word: "домашний", options: ["м", "ш", "н"], correct: "н" },
+        { word: "дорогой", options: ["д", "р", "г"], correct: "г" },
+        { word: "летний", options: ["л", "т", "н"], correct: "н" },
+        { word: "старший", options: ["с", "р", "ш"], correct: "ш" },
+        { word: "строгий", options: ["с", "р", "г"], correct: "г" },
+        { word: "вечерний", options: ["в", "р", "н"], correct: "н" },
+        { word: "плохой", options: ["п", "л", "х"], correct: "х" },
+        { word: "следующий", options: ["л", "д", "щ"], correct: "щ" },
+        { word: "короткий", options: ["р", "т", "к"], correct: "к" }
+    ];
+
+    let currentTasks = [];
+
+    // Fisher-Yates Shuffle Algorithmus
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function initExercises(shouldShuffle = false) {
+        const grid = document.getElementById('exerciseGrid');
+        grid.innerHTML = '';
+        
+        // Kopie der Daten erstellen
+        currentTasks = [...tasksData];
+        
+        if (shouldShuffle) {
+            currentTasks = shuffleArray(currentTasks);
+        }
+
+        currentTasks.forEach((task, index) => {
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.id = `card-${index}`;
+            
+            card.innerHTML = `
+                <div class="word-display">${task.word}</div>
+                <div class="instruction-small">Klicke den Stamm-Konsonanten:</div>
+                <div class="options-container">
+                    ${task.options.map(letter => `
+                        <button class="letter-btn" onclick="handleChoice(this, ${index}, '${letter}', '${task.correct}')">${letter}</button>
+                    `).join('')}
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function handleChoice(btn, taskIndex, selected, correct) {
+        const card = document.getElementById(`card-${taskIndex}`);
+        const buttons = card.querySelectorAll('.letter-btn');
+        
+        // Erst alle Buttons dieser Karte zurücksetzen
+        buttons.forEach(b => b.classList.remove('correct', 'wrong'));
+        
+        // Feedback geben
+        if (selected === correct) {
+            btn.classList.add('correct');
+        } else {
+            btn.classList.add('wrong');
+        }
+    }
+
+    function showAllSolutions() {
+        currentTasks.forEach((task, index) => {
+            const card = document.getElementById(`card-${index}`);
+            const buttons = card.querySelectorAll('.letter-btn');
+            
+            buttons.forEach(btn => {
+                btn.classList.remove('wrong');
+                if (btn.innerText === task.correct) {
+                    btn.classList.add('correct');
+                } else {
+                    btn.classList.remove('correct');
+                }
+            });
+        });
+    }
+
+    // Beim ersten Laden mischen
+    window.onload = () => initExercises(true);
+</script>
+
+</body>
+</html>
