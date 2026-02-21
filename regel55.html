@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regel-Waage: Russische Adjektiv-Logik</title>
+    <!-- Polyfill für Touch-Geräte -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-blue: #0039a6;
+            --primary-red: #d52b1e;
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --correct-green: #28a745;
+            --wrong-red: #dc3545;
+            --correct-light: #d4edda;
+            --wrong-light: #f8d7da;
+            --text-main: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background: #eef2ff;
+            border-left: 6px solid var(--primary-blue);
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .exercise-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .task-card {
+            border: 1px solid #e0e6ed;
+            padding: 20px;
+            border-radius: 12px;
+            background-color: #fafbfc;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s;
+        }
+
+        .word-display {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--primary-blue);
+            text-align: center;
+            margin-bottom: 15px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .rule-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .rule-btn {
+            padding: 10px;
+            border: 2px solid #ced4da;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-align: left;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .rule-btn:hover:not(.disabled) {
+            border-color: var(--primary-blue);
+            background-color: #f0f7ff;
+        }
+
+        /* Feedback-Zustände */
+        .rule-btn.correct {
+            background-color: var(--correct-green) !important;
+            border-color: var(--correct-green) !important;
+            color: white !important;
+        }
+
+        .rule-btn.wrong {
+            background-color: var(--wrong-red) !important;
+            border-color: var(--wrong-red) !important;
+            color: white !important;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px solid #eee;
+            flex-wrap: wrap;
+        }
+
+        button.main-ctrl {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-reset { background-color: #6c757d; }
+        .btn-solution { background-color: var(--primary-blue); }
+        button.main-ctrl:hover { opacity: 0.9; }
+
+        @media (max-width: 600px) {
+            .exercise-grid { grid-template-columns: 1fr; }
+            .word-display { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Die Regel-Waage</h1>
+    
+    <div class="intro">
+        <strong>Anleitung:</strong> Schau dir die markierte Endung des Adjektivs an. Warum wurde dieser Buchstabe gewählt? Klicke auf die zugrunde liegende grammatikalische Regel.
+        <br>Feedback erfolgt <strong>sofort</strong>: Grün = Richtig, Rot = Falsch.
+    </div>
+
+    <div class="exercise-grid" id="exerciseGrid">
+        <!-- JS Injektion -->
+    </div>
+
+    <div class="controls">
+        <button class="main-ctrl btn-reset" onclick="initExercises(true)">Zurücksetzen und mischen</button>
+        <button class="main-ctrl btn-solution" onclick="showAllSolutions()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    const rules = {
+        r7: "7-Buchstaben-Regel (и statt ы nach к,г,х,ж,ш,ч,щ)",
+        r5: "5-Buchstaben-Regel (unbetontes е statt о nach ж,ш,ч,щ,ц)",
+        rStd: "Standard-Endung / Harte Deklination (-ые / -ое)",
+        rSoft: "Weiche Deklination (Gruppe 5: -ие / -ее)",
+        rStress: "Betonungs-Regel (о bleibt nach Zischlaut, da betont)"
+    };
+
+    const taskData = [
+        { word: "плохИЕ", correct: "r7" },
+        { word: "свежЕЕ", correct: "r5" },
+        { word: "русскИЕ", correct: "r7" },
+        { word: "большОЕ", correct: "rStress" },
+        { word: "хорошЕЕ", correct: "r5" },
+        { word: "новЫЕ", correct: "rStd" },
+        { word: "маленькИЕ", correct: "r7" },
+        { word: "синЕЕ", correct: "rSoft" },
+        { word: "дорогИЕ", correct: "r7" },
+        { word: "горячЕЕ", correct: "r5" },
+        { word: "белЫЕ", correct: "rStd" },
+        { word: "чужОЕ", correct: "rStress" },
+        { word: "летнИЕ", correct: "rSoft" },
+        { word: "тихИЕ", correct: "r7" },
+        { word: "младшЕЕ", correct: "r5" },
+        { word: "большИЕ", correct: "r7" },
+        { word: "чистОЕ", correct: "rStd" },
+        { word: "следующЕЕ", correct: "r5" },
+        { word: "утрeннЕЕ", correct: "rSoft" },
+        { word: "высокИЕ", correct: "r7" }
+    ];
+
+    let currentTasks = [];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function initExercises(shuffle = false) {
+        const grid = document.getElementById('exerciseGrid');
+        grid.innerHTML = '';
+        currentTasks = shuffle ? shuffleArray([...taskData]) : [...taskData];
+
+        currentTasks.forEach((task, index) => {
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.id = `card-${index}`;
+            
+            // Generiere Optionen (immer dieselben 3 zur Auswahl für die Waage-Logik)
+            const options = ['r7', 'r5', 'rStd'];
+            // Falls die Lösung rSoft oder rStress ist, füge sie hinzu oder ersetze Standard
+            if (!options.includes(task.correct)) {
+                options.push(task.correct);
+            }
+
+            card.innerHTML = `
+                <div class="word-display">${task.word}</div>
+                <div class="rule-options">
+                    ${options.map(rKey => `
+                        <button class="rule-btn" onclick="checkRule(this, ${index}, '${rKey === task.correct}')">
+                            ${rules[rKey]}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function checkRule(btn, taskIndex, isCorrect) {
+        const card = document.getElementById(`card-${taskIndex}`);
+        const buttons = card.querySelectorAll('.rule-btn');
+        
+        buttons.forEach(b => b.classList.remove('correct', 'wrong'));
+        
+        if (isCorrect === 'true') {
+            btn.classList.add('correct');
+        } else {
+            btn.classList.add('wrong');
+        }
+    }
+
+    function showAllSolutions() {
+        currentTasks.forEach((task, index) => {
+            const card = document.getElementById(`card-${index}`);
+            const buttons = card.querySelectorAll('.rule-btn');
+            
+            buttons.forEach(btn => {
+                btn.classList.remove('wrong');
+                // Wir vergleichen den Text des Buttons mit der korrekten Regelbeschreibung
+                if (btn.innerText.trim() === rules[task.correct].trim()) {
+                    btn.classList.add('correct');
+                } else {
+                    btn.classList.remove('correct');
+                }
+            });
+        });
+    }
+
+    window.onload = () => initExercises(true);
+</script>
+
+</body>
+</html>
