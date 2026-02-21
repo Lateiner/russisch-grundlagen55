@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regel-Check: Russische Adjektivgruppen</title>
+    <!-- Polyfill für Touch-Geräte -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-blue: #0039a6;
+            --primary-red: #d52b1e;
+            --bg-color: #f4f7f9;
+            --card-bg: #ffffff;
+            --correct-green: #28a745;
+            --wrong-red: #dc3545;
+            --correct-light: #d4edda;
+            --wrong-light: #f8d7da;
+            --text-main: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: var(--primary-red);
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+        }
+
+        .intro {
+            background: #eef2ff;
+            border-left: 6px solid var(--primary-blue);
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .quiz-item {
+            border-bottom: 1px solid #eee;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .quiz-item:last-child {
+            border-bottom: none;
+        }
+
+        .statement {
+            font-size: 1.1rem;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .quiz-btn {
+            padding: 10px 25px;
+            border: 2px solid #ced4da;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.2s;
+            flex: 1;
+            max-width: 150px;
+        }
+
+        .quiz-btn:hover {
+            border-color: var(--primary-blue);
+            background-color: #f0f7ff;
+        }
+
+        /* Feedback-Zustände */
+        .quiz-btn.selected-correct {
+            background-color: var(--correct-green) !important;
+            border-color: var(--correct-green) !important;
+            color: white !important;
+        }
+
+        .quiz-btn.selected-wrong {
+            background-color: var(--wrong-red) !important;
+            border-color: var(--wrong-red) !important;
+            color: white !important;
+        }
+
+        .explanation {
+            font-size: 0.9rem;
+            padding: 10px 15px;
+            border-radius: 6px;
+            display: none; /* Standardmäßig versteckt */
+        }
+
+        .explanation.visible {
+            display: block;
+        }
+
+        .explanation.info-correct {
+            background-color: var(--correct-light);
+            color: #155724;
+            border: 1px solid var(--correct-green);
+        }
+
+        .explanation.info-wrong {
+            background-color: var(--wrong-light);
+            color: #721c24;
+            border: 1px solid var(--wrong-red);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        button.main-ctrl {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-reset { background-color: #6c757d; }
+        .btn-solution { background-color: var(--primary-blue); }
+        button.main-ctrl:hover { opacity: 0.9; }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .button-group { width: 100%; }
+            .quiz-btn { max-width: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Russische Adjektive</h1>
+    <h2>Wahr oder Falsch? Der Regel-Check</h2>
+
+    <div class="intro">
+        <strong>Anleitung:</strong> Lies die Aussagen über die russischen Adjektivgruppen genau durch. Entscheide per Klick, ob die Aussage <strong>Wahr</strong> oder <strong>Falsch</strong> ist. Du erhältst sofort eine Rückmeldung und eine kurze Erklärung.
+    </div>
+
+    <div id="quiz-container">
+        <!-- Fragen werden per JS eingefügt -->
+    </div>
+
+    <div class="controls">
+        <button class="main-ctrl btn-reset" onclick="resetQuiz()">Zurücksetzen</button>
+        <button class="main-ctrl btn-solution" onclick="showAllSolutions()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            id: 1,
+            text: "Adjektive der Gruppe 2 (hart) enden im Maskulinum auf -ЫЙ.",
+            answer: true,
+            info: "Richtig! Das ist die Standardendung für harte Adjektive wie „новый“ oder „белый“."
+        },
+        {
+            id: 2,
+            text: "In Gruppe 4 (Zischlaute wie Ж, Ш, Ч, Щ) endet das Neutrum im unbetonten Fall auf -ОЕ.",
+            answer: false,
+            info: "Falsch! Nach Zischlauten wird ein unbetontes -О zu -Е, daher endet das Neutrum auf -ЕЕ (z.B. „хорошее“)."
+        },
+        {
+            id: 3,
+            text: "Nach den Buchstaben К, Г und Х wird im Plural immer -ИЕ statt -ЫЕ geschrieben.",
+            answer: true,
+            info: "Richtig! Das ist Teil der russischen 7-Buchstaben-Regel."
+        },
+        {
+            id: 4,
+            text: "Adjektive der Gruppe 1 haben immer eine betonte Endung (z.B. „молодой“).",
+            answer: true,
+            info: "Richtig! Wenn die Endung im Maskulinum betont ist, schreiben wir -ОЙ."
+        },
+        {
+            id: 5,
+            text: "Bei zusammengesetzten Adjektiven (Gruppe 6) wie „англо-русский“ werden beide Wortteile dekliniert.",
+            answer: false,
+            info: "Falsch! Nur der zweite Teil wird dekliniert, der erste Teil bleibt unverändert auf -О (z.B. „англо-“)."
+        },
+        {
+            id: 6,
+            text: "In Gruppe 5 (weiche Deklination) ist die Endung im Femininum -АЯ.",
+            answer: false,
+            info: "Falsch! Da die Deklination weich ist, lautet die Endung -ЯЯ (z.B. „синяя“)."
+        },
+        {
+            id: 7,
+            text: "Nach den Zischlauten Ж und Ш schreibt man im Russischen niemals den Buchstaben Ы.",
+            answer: true,
+            info: "Richtig! Es gilt die Regel: Nach Ж, Ш, Ч, Щ, К, Г, Х schreibt man immer И."
+        },
+        {
+            id: 8,
+            text: "Das Wort „синий“ gehört zur Gruppe 5, weil es ein weiches Н im Stamm hat.",
+            answer: true,
+            info: "Richtig! Alle Adjektive auf -НИЙ gehören zur weichen Gruppe 5."
+        },
+        {
+            id: 9,
+            text: "Adjektive der Gruppe 3 (Stamm auf К, Г, Х) enden im Maskulinum auf -ЫЙ.",
+            answer: false,
+            info: "Falsch! Sie enden im Maskulinum auf -ИЙ (z.B. „русский“), auch wenn die Endung unbetont ist."
+        },
+        {
+            id: 10,
+            text: "Das Neutrum von „свежий“ (Gruppe 4) lautet „свежее“.",
+            answer: true,
+            info: "Richtig! Da die Endung unbetont ist, wird nach dem Zischlaut Ж ein E geschrieben."
+        }
+    ];
+
+    function initQuiz() {
+        const container = document.getElementById('quiz-container');
+        container.innerHTML = '';
+
+        quizData.forEach((item) => {
+            const quizItem = document.createElement('div');
+            quizItem.className = 'quiz-item';
+            quizItem.id = `item-${item.id}`;
+
+            quizItem.innerHTML = `
+                <div class="statement">${item.id}. ${item.text}</div>
+                <div class="button-group">
+                    <button class="quiz-btn" onclick="handleCheck(${item.id}, true)">Wahr</button>
+                    <button class="quiz-btn" onclick="handleCheck(${item.id}, false)">Falsch</button>
+                </div>
+                <div class="explanation" id="exp-${item.id}">${item.info}</div>
+            `;
+            container.appendChild(quizItem);
+        });
+    }
+
+    function handleCheck(id, userChoice) {
+        const item = quizData.find(q => q.id === id);
+        const buttons = document.querySelectorAll(`#item-${id} .quiz-btn`);
+        const exp = document.getElementById(`exp-${id}`);
+
+        // Buttons zurücksetzen
+        buttons.forEach(btn => {
+            btn.classList.remove('selected-correct', 'selected-wrong');
+            const btnType = btn.innerText === "Wahr";
+            
+            if (btnType === userChoice) {
+                if (userChoice === item.answer) {
+                    btn.classList.add('selected-correct');
+                    exp.className = "explanation visible info-correct";
+                } else {
+                    btn.classList.add('selected-wrong');
+                    exp.className = "explanation visible info-wrong";
+                }
+            }
+        });
+    }
+
+    function resetQuiz() {
+        initQuiz();
+    }
+
+    function showAllSolutions() {
+        quizData.forEach(item => {
+            const buttons = document.querySelectorAll(`#item-${item.id} .quiz-btn`);
+            const exp = document.getElementById(`exp-${item.id}`);
+
+            buttons.forEach(btn => {
+                const btnType = btn.innerText === "Wahr";
+                btn.classList.remove('selected-wrong');
+                if (btnType === item.answer) {
+                    btn.classList.add('selected-correct');
+                } else {
+                    btn.classList.remove('selected-correct');
+                }
+            });
+            exp.className = "explanation visible info-correct";
+        });
+    }
+
+    // Quiz beim Laden starten
+    window.onload = initQuiz;
+</script>
+
+</body>
+</html>
