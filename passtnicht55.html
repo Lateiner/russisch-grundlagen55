@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odd One Out: Russische Adjektivgruppen</title>
+    <!-- Polyfill für Touch-Geräte -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-blue: #0039a6;
+            --primary-red: #d52b1e;
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --correct-green: #28a745;
+            --wrong-red: #dc3545;
+            --text-main: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background: #eef2ff;
+            border-left: 6px solid var(--primary-blue);
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .task-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .task-card {
+            border: 1px solid #e0e6ed;
+            padding: 20px;
+            border-radius: 12px;
+            background-color: #fafbfc;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .task-header {
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .word-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .word-btn {
+            padding: 12px;
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .word-btn:hover {
+            border-color: var(--primary-blue);
+            background-color: #f8f9fa;
+        }
+
+        /* Feedback Zustände */
+        .word-btn.correct {
+            background-color: var(--correct-green) !important;
+            border-color: var(--correct-green) !important;
+            color: white !important;
+        }
+
+        .word-btn.wrong {
+            background-color: var(--wrong-red) !important;
+            border-color: var(--wrong-red) !important;
+            color: white !important;
+        }
+
+        .explanation {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #555;
+            padding: 10px;
+            border-radius: 6px;
+            background: #e9ecef;
+            display: none; /* Hidden by default */
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        button.main-ctrl {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-reset { background-color: #6c757d; }
+        .btn-solution { background-color: var(--primary-blue); }
+        button.main-ctrl:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>„Das passt nicht!“</h1>
+    
+    <div class="intro">
+        <strong>Anleitung:</strong> In jeder Gruppe gehören drei Adjektive zur selben Deklinationsgruppe. Eines tanzt aus der Reihe (Odd One Out). 
+        Klicke auf das Wort, das <strong>nicht</strong> dazu passt. Du erhältst sofort eine Rückmeldung: Grün = Richtig, Rot = Falsch.
+    </div>
+
+    <div class="task-grid" id="taskGrid">
+        <!-- Aufgaben werden per JavaScript geladen -->
+    </div>
+
+    <div class="controls">
+        <button class="main-ctrl btn-reset" onclick="resetAll()">Zurücksetzen</button>
+        <button class="main-ctrl btn-solution" onclick="showAllSolutions()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    const oddOneOutTasks = [
+        {
+            id: 1,
+            words: ["новый", "старый", "белый", "синий"],
+            correct: "синий",
+            reason: "синий gehört zur weichen Gruppe 5 (-НИЙ), die anderen zur harten Gruppe 2 (-ЫЙ)."
+        },
+        {
+            id: 2,
+            words: ["молодой", "голубой", "другой", "красивый"],
+            correct: "красивый",
+            reason: "красивый hat die Endung -ЫЙ (Gr. 2), die anderen enden auf betontes -ОЙ (Gr. 1)."
+        },
+        {
+            id: 3,
+            words: ["русский", "маленький", "тихий", "чистый"],
+            correct: "чистый",
+            reason: "чистый ist Gruppe 2 (hart). Die anderen enden auf К, Г, Х + -ИЙ (Gr. 3)."
+        },
+        {
+            id: 4,
+            words: ["хороший", "свежий", "горячий", "маленький"],
+            correct: "маленький",
+            reason: "маленький ist Gruppe 3 (Stamm auf К). Die anderen sind Gruppe 4 (Zischlaute Ж, Ш, Ч)."
+        },
+        {
+            id: 5,
+            words: ["летний", "вечерний", "последний", "младший"],
+            correct: "младший",
+            reason: "младший gehört zur Gruppe 4 (Zischlaut Ш). Die anderen sind weiche Adjektive der Gruppe 5."
+        },
+        {
+            id: 6,
+            words: ["большой", "чужой", "плохой", "высокий"],
+            correct: "высокий",
+            reason: "высокий endet auf -ИЙ (Gr. 3). Die anderen enden auf betontes -ОЙ (Gr. 1)."
+        },
+        {
+            id: 7,
+            words: ["добрый", "умный", "сильный", "немецкий"],
+            correct: "немецкий",
+            reason: "немецкий ist Gr. 3 (Stamm auf К). Die anderen sind Standard-Adjektive der Gr. 2 (-ЫЙ)."
+        },
+        {
+            id: 8,
+            words: ["англо-русский", "русско-немецкий", "японско-корейский", "русский"],
+            correct: "русский",
+            reason: "русский ist ein einfaches Adjektiv. Die anderen sind zusammengesetzte Adjektive (Gr. 6)."
+        },
+        {
+            id: 9,
+            words: ["высокий", "сладкий", "мягкий", "новый"],
+            correct: "новый",
+            reason: "новый ist Gr. 2 (hart). Die anderen haben den Stamm auf К, Г, Х (Gr. 3)."
+        },
+        {
+            id: 10,
+            words: ["свежий", "хороший", "младший", "синий"],
+            correct: "синий",
+            reason: "синий ist Gruppe 5 (weiches Н). Die anderen sind Gruppe 4 (Zischlaute)."
+        }
+    ];
+
+    function initGrid() {
+        const grid = document.getElementById('taskGrid');
+        grid.innerHTML = '';
+        
+        oddOneOutTasks.forEach(task => {
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.id = `task-${task.id}`;
+            
+            // Shuffle words within the task
+            const shuffledWords = [...task.words].sort(() => Math.random() - 0.5);
+
+            card.innerHTML = `
+                <div class="task-header">Aufgabe ${task.id}: Welches Wort passt nicht?</div>
+                <div class="word-group">
+                    ${shuffledWords.map(word => `
+                        <button class="word-btn" onclick="checkAnswer(${task.id}, '${word}', '${task.correct}')">${word}</button>
+                    `).join('')}
+                </div>
+                <div class="explanation" id="exp-${task.id}">${task.reason}</div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function checkAnswer(taskId, selected, correct) {
+        const card = document.getElementById(`task-${taskId}`);
+        const buttons = card.querySelectorAll('.word-btn');
+        const exp = document.getElementById(`exp-${taskId}`);
+        
+        buttons.forEach(btn => {
+            // Remove existing feedback if user clicks another button
+            btn.classList.remove('correct', 'wrong');
+            
+            if (btn.innerText === selected) {
+                if (selected === correct) {
+                    btn.classList.add('correct');
+                    exp.style.display = 'block';
+                } else {
+                    btn.classList.add('wrong');
+                }
+            }
+        });
+    }
+
+    function resetAll() {
+        initGrid();
+    }
+
+    function showAllSolutions() {
+        oddOneOutTasks.forEach(task => {
+            const card = document.getElementById(`task-${task.id}`);
+            const buttons = card.querySelectorAll('.word-btn');
+            const exp = document.getElementById(`exp-${task.id}`);
+            
+            exp.style.display = 'block';
+            buttons.forEach(btn => {
+                btn.classList.remove('wrong');
+                if (btn.innerText === task.correct) {
+                    btn.classList.add('correct');
+                }
+            });
+        });
+    }
+
+    // Initialisierung beim Laden
+    window.onload = initGrid;
+</script>
+
+</body>
+</html>
