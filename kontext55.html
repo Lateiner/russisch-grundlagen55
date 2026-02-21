@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satz-Baukasten: Russische Adjektive im Kontext</title>
+    <!-- Polyfill für Touch-Geräte -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-blue: #0039a6;
+            --primary-red: #d52b1e;
+            --bg-color: #f4f7f9;
+            --card-bg: #ffffff;
+            --correct-green: #28a745;
+            --wrong-red: #dc3545;
+            --correct-light: #d4edda;
+            --wrong-light: #f8d7da;
+            --text-main: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background: #eef2ff;
+            border-left: 6px solid var(--primary-blue);
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .sentence-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sentence-card {
+            border: 1px solid #e0e6ed;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #fafbfc;
+        }
+
+        .sentence-text {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .gap {
+            display: inline-block;
+            min-width: 120px;
+            border-bottom: 2px solid var(--primary-blue);
+            text-align: center;
+            color: var(--primary-blue);
+            font-weight: bold;
+            padding: 0 5px;
+        }
+
+        .translation {
+            display: block;
+            font-size: 0.9rem;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+
+        .options-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .option-btn {
+            padding: 8px 16px;
+            border: 2px solid #ced4da;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary-blue);
+            background-color: #f0f7ff;
+        }
+
+        /* Feedback-Zustände */
+        .option-btn.correct {
+            background-color: var(--correct-green) !important;
+            border-color: var(--correct-green) !important;
+            color: white !important;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-red) !important;
+            border-color: var(--wrong-red) !important;
+            color: white !important;
+        }
+
+        .gap.correct-text {
+            color: var(--correct-green);
+            border-bottom-color: var(--correct-green);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        button.main-ctrl {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-reset { background-color: #6c757d; }
+        .btn-solution { background-color: var(--primary-blue); }
+        button.main-ctrl:hover { opacity: 0.9; }
+
+        @media (max-width: 600px) {
+            .sentence-text { font-size: 1.1rem; }
+            .option-btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Satz-Baukasten</h1>
+    
+    <div class="intro">
+        <strong>Anleitung:</strong> Vervollständige die Sätze. Klicke auf das Adjektiv mit der richtigen Endung, damit es zum Substantiv passt. Du erhältst <strong>sofort</strong> ein Feedback: Grün = Richtig, Rot = Falsch.
+    </div>
+
+    <div class="sentence-list" id="sentenceList">
+        <!-- Sätze werden per JavaScript geladen -->
+    </div>
+
+    <div class="controls">
+        <button class="main-ctrl btn-reset" onclick="resetAll()">Zurücksetzen</button>
+        <button class="main-ctrl btn-solution" onclick="showAllSolutions()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    const exercises = [
+        {
+            id: 1,
+            before: "Сегодня ",
+            after: " день.",
+            translation: "Heute ist ein schöner Tag.",
+            options: ["красивый", "красивая", "красивое"],
+            correct: "красивый"
+        },
+        {
+            id: 2,
+            before: "Это ",
+            after: " школа.",
+            translation: "Das ist eine russische Schule.",
+            options: ["русский", "русская", "русское"],
+            correct: "русская"
+        },
+        {
+            id: 3,
+            before: "Я читаю ",
+            after: " книгу.",
+            translation: "Ich lese ein russisches Buch.",
+            options: ["русский", "русское", "русскую"],
+            correct: "русскую"
+        },
+        {
+            id: 4,
+            before: "",
+            after: " море очень большое.",
+            translation: "Das blaue Meer ist sehr groß.",
+            options: ["синий", "синяя", "синее"],
+            correct: "синее"
+        },
+        {
+            id: 5,
+            before: "Это мои ",
+            after: " друзья.",
+            translation: "Das sind meine neuen Freunde.",
+            options: ["новый", "новая", "новые"],
+            correct: "новые"
+        },
+        {
+            id: 6,
+            before: "Я вижу ",
+            after: " мяч.",
+            translation: "Ich sehe einen hellblauen Ball.",
+            options: ["голубой", "голубая", "голубое"],
+            correct: "голубой"
+        },
+        {
+            id: 7,
+            before: "Мне нравится ",
+            after: " музыка.",
+            translation: "Mir gefällt gute Musik.",
+            options: ["хороший", "хорошая", "хорошее"],
+            correct: "хорошая"
+        },
+        {
+            id: 8,
+            before: "Это очень ",
+            after: " здание.",
+            translation: "Das ist ein sehr hohes Gebäude.",
+            options: ["высокий", "высокая", "высокое"],
+            correct: "высокое"
+        },
+        {
+            id: 9,
+            before: "У меня есть ",
+            after: " словарь.",
+            translation: "Ich habe ein englisch-russisches Wörterbuch.",
+            options: ["англо-русский", "англо-русская", "англо-русское"],
+            correct: "англо-русский"
+        },
+        {
+            id: 10,
+            before: "На столе лежит ",
+            after: " яблоко.",
+            translation: "Auf dem Tisch liegt ein frischer Apfel.",
+            options: ["свежий", "свежая", "свежее"],
+            correct: "свежее"
+        }
+    ];
+
+    function initExercises() {
+        const list = document.getElementById('sentenceList');
+        list.innerHTML = '';
+        
+        exercises.forEach(ex => {
+            const card = document.createElement('div');
+            card.className = 'sentence-card';
+            card.id = `card-${ex.id}`;
+            
+            card.innerHTML = `
+                <div class="sentence-text">
+                    ${ex.before}<span class="gap" id="gap-${ex.id}">_____</span>${ex.after}
+                </div>
+                <span class="translation">„${ex.translation}“</span>
+                <div class="options-group">
+                    ${ex.options.map(opt => `
+                        <button class="option-btn" onclick="checkAnswer(${ex.id}, '${opt}', '${ex.correct}')">${opt}</button>
+                    `).join('')}
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    function checkAnswer(id, selected, correct) {
+        const gap = document.getElementById(`gap-${id}`);
+        const card = document.getElementById(`card-${id}`);
+        const buttons = card.querySelectorAll('.option-btn');
+        
+        buttons.forEach(btn => {
+            btn.classList.remove('correct', 'wrong');
+            if (btn.innerText === selected) {
+                if (selected === correct) {
+                    btn.classList.add('correct');
+                    gap.innerText = selected;
+                    gap.classList.add('correct-text');
+                } else {
+                    btn.classList.add('wrong');
+                    // Falls falsch gewählt, Lücke nicht füllen oder nur temporär
+                    gap.innerText = selected;
+                    gap.classList.remove('correct-text');
+                }
+            }
+        });
+    }
+
+    function resetAll() {
+        initExercises();
+    }
+
+    function showAllSolutions() {
+        exercises.forEach(ex => {
+            const gap = document.getElementById(`gap-${ex.id}`);
+            const card = document.getElementById(`card-${ex.id}`);
+            const buttons = card.querySelectorAll('.option-btn');
+            
+            gap.innerText = ex.correct;
+            gap.classList.add('correct-text');
+            
+            buttons.forEach(btn => {
+                btn.classList.remove('wrong');
+                if (btn.innerText === ex.correct) {
+                    btn.classList.add('correct');
+                } else {
+                    btn.classList.remove('correct');
+                }
+            });
+        });
+    }
+
+    // Beim Laden initialisieren
+    window.onload = initExercises;
+</script>
+
+</body>
+</html>
