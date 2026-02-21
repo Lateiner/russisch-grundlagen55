@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fehlersuche: Russische Adjektivgruppen</title>
+    <!-- Polyfill für Touch-Interaktionen -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-blue: #0039a6;
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --correct-green: #28a745;
+            --wrong-red: #dc3545;
+            --text-main: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        h1, h2 { color: var(--primary-blue); text-align: center; }
+
+        .intro {
+            background: #eef2ff;
+            border-left: 6px solid var(--primary-blue);
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        .exercise-block {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #e0e6ed;
+            border-radius: 10px;
+            background-color: #fafbfc;
+        }
+
+        .block-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            display: block;
+            color: var(--primary-blue);
+            border-bottom: 2px solid #eef2ff;
+            padding-bottom: 5px;
+        }
+
+        .phrase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .word-token {
+            padding: 12px;
+            background: white;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+            font-size: 1.05rem;
+            user-select: none;
+        }
+
+        /* Feedback-Farben */
+        /* Wenn ein FALSCH geschriebenes Wort korrekt identifiziert wurde (Grün) */
+        .found-mistake {
+            background-color: #d4edda !important;
+            border-color: var(--correct-green) !important;
+            color: #155724 !important;
+        }
+
+        /* Wenn ein RICHTIG geschriebenes Wort fälschlich angeklickt wurde (Rot) */
+        .false-alarm {
+            background-color: #f8d7da !important;
+            border-color: var(--wrong-red) !important;
+            color: #721c24 !important;
+        }
+
+        /* Lösung-Anzeige (Blau/Grün Mix) */
+        .is-solution {
+            border: 2px solid var(--correct-green) !important;
+            box-shadow: 0 0 8px rgba(40, 167, 69, 0.5);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: opacity 0.2s;
+        }
+
+        .btn-reset { background-color: #6c757d; }
+        .btn-sol { background-color: var(--primary-blue); }
+        button:hover { opacity: 0.9; }
+
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .phrase-grid { grid-template-columns: 1fr; }
+            .btn-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Russische Grammatik</h1>
+    <h2>Fehlersuche: Adjektivendungen</h2>
+
+    <div class="intro">
+        <strong>Anleitung:</strong> In den folgenden Aufgaben haben sich orthografische Fehler eingeschlichen. 
+        Klicke auf die Phrasen, in denen das Adjektiv <strong>falsch</strong> geschrieben ist. 
+        Richtig geschriebene Wörter sollen nicht markiert werden.
+    </div>
+
+    <!-- BLOCK 1: Regel nach К, Г, Х (Gruppe 1 & 3) -->
+    <div class="exercise-block" id="block1">
+        <span class="block-title">Aufgaben 1–5: Die 7-Buchstaben-Regel (К, Г, Х)</span>
+        <div class="phrase-grid">
+            <div class="word-token" data-wrong="true">русскые люди</div>
+            <div class="word-token" data-wrong="false">русские песни</div>
+            <div class="word-token" data-wrong="true">маленькый дом</div>
+            <div class="word-token" data-wrong="true">плохые новости</div>
+            <div class="word-token" data-wrong="false">дорогие подарки</div>
+        </div>
+        <div class="btn-group">
+            <button class="btn-reset" onclick="resetBlock('block1')">Zurücksetzen</button>
+            <button class="btn-sol" onclick="solveBlock('block1')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- BLOCK 2: Regel nach Zischlauten (Gruppe 1 & 4) -->
+    <div class="exercise-block" id="block2">
+        <span class="block-title">Aufgaben 6–10: Zischlaute (Ж, Ш, Ч, Щ)</span>
+        <div class="phrase-grid">
+            <div class="word-token" data-wrong="true">хорошый день</div>
+            <div class="word-token" data-wrong="false">большие города</div>
+            <div class="word-token" data-wrong="true">свежый хлеб</div>
+            <div class="word-token" data-wrong="false">горячий кофе</div>
+            <div class="word-token" data-wrong="true">чужые вещи</div>
+        </div>
+        <div class="btn-group">
+            <button class="btn-reset" onclick="resetBlock('block2')">Zurücksetzen</button>
+            <button class="btn-sol" onclick="solveBlock('block2')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- BLOCK 3: Neutrum-Endungen (Gruppe 4 vs. 1) -->
+    <div class="exercise-block" id="block3">
+        <span class="block-title">Aufgaben 11–15: Das Neutrum (-ОЕ oder -ЕЕ?)</span>
+        <div class="phrase-grid">
+            <div class="word-token" data-wrong="true">горячое молоко</div>
+            <div class="word-token" data-wrong="false">свежее мясо</div>
+            <div class="word-token" data-wrong="false">большое окно</div>
+            <div class="word-token" data-wrong="true">хорошое фото</div>
+            <div class="word-token" data-wrong="true">следующое занятие</div>
+        </div>
+        <div class="btn-group">
+            <button class="btn-reset" onclick="resetBlock('block3')">Zurücksetzen</button>
+            <button class="btn-sol" onclick="solveBlock('block3')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- BLOCK 4: Weiche Deklination (Gruppe 5) -->
+    <div class="exercise-block" id="block4">
+        <span class="block-title">Aufgaben 16–20: Weiche Adjektive (-НИЙ)</span>
+        <div class="phrase-grid">
+            <div class="word-token" data-wrong="true">синая сумка</div>
+            <div class="word-token" data-wrong="false">синее небо</div>
+            <div class="word-token" data-wrong="true">летная погода</div>
+            <div class="word-token" data-wrong="false">домашнее задание</div>
+            <div class="word-token" data-wrong="true">последная минута</div>
+        </div>
+        <div class="btn-group">
+            <button class="btn-reset" onclick="resetBlock('block4')">Zurücksetzen</button>
+            <button class="btn-sol" onclick="solveBlock('block4')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Initialisierung: Klick-Events für alle Tokens
+    document.querySelectorAll('.word-token').forEach(token => {
+        token.addEventListener('click', function() {
+            // Nur reagieren, wenn noch nicht gelöst wurde
+            if (this.classList.contains('is-solution')) return;
+
+            const isWrongWord = this.getAttribute('data-wrong') === 'true';
+            
+            if (isWrongWord) {
+                // Richtig identifizierter Fehler
+                this.classList.add('found-mistake');
+                this.classList.remove('false-alarm');
+            } else {
+                // Fälschlich als Fehler markiert
+                this.classList.add('false-alarm');
+                this.classList.remove('found-mistake');
+            }
+        });
+    });
+
+    function resetBlock(blockId) {
+        const block = document.getElementById(blockId);
+        block.querySelectorAll('.word-token').forEach(token => {
+            token.classList.remove('found-mistake', 'false-alarm', 'is-solution');
+        });
+    }
+
+    function solveBlock(blockId) {
+        const block = document.getElementById(blockId);
+        block.querySelectorAll('.word-token').forEach(token => {
+            const isWrongWord = token.getAttribute('data-wrong') === 'true';
+            
+            // Markiere alle, die eigentlich falsch geschrieben sind, als Lösung
+            if (isWrongWord) {
+                token.classList.add('found-mistake', 'is-solution');
+            } else {
+                token.classList.remove('false-alarm');
+                token.classList.add('is-solution');
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
