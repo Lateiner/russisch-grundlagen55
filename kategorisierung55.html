@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix-Sortierung: Russische Adjektiv-Stämme</title>
+    <!-- Polyfill für Drag and Drop auf Touch-Geräten -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-blue: #0039a6;
+            --primary-red: #d52b1e;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --correct-green: #28a745;
+            --wrong-red: #dc3545;
+            --velar-color: #e3f2fd;
+            --sibilant-color: #f3e5f5;
+            --soft-n-color: #e8f5e9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background: #eef2ff;
+            border-left: 6px solid var(--primary-blue);
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Wort-Pool */
+        .word-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: #eee;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 80px;
+            margin-bottom: 30px;
+            justify-content: center;
+            border: 2px solid #ddd;
+        }
+
+        .drag-item {
+            padding: 10px 15px;
+            background: white;
+            border: 2px solid var(--primary-blue);
+            border-radius: 6px;
+            cursor: grab;
+            font-weight: bold;
+            user-select: none;
+            transition: transform 0.2s, background-color 0.3s;
+        }
+
+        .drag-item:active {
+            cursor: grabbing;
+        }
+
+        /* Matrix/Grid Layout */
+        .matrix {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .category-column {
+            display: flex;
+            flex-direction: column;
+            border-radius: 8px;
+            min-height: 300px;
+            border: 2px dashed #ccc;
+            background: white;
+            transition: background-color 0.2s;
+        }
+
+        .category-header {
+            text-align: center;
+            padding: 15px 10px;
+            font-weight: bold;
+            border-radius: 6px 6px 0 0;
+            color: #333;
+            font-size: 0.9rem;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .category-header span {
+            display: block;
+            font-size: 1.2rem;
+            color: var(--primary-red);
+            margin-top: 5px;
+        }
+
+        .velar-header { background-color: var(--velar-color); }
+        .sibilant-header { background-color: var(--sibilant-color); }
+        .soft-n-header { background-color: var(--soft-n-color); }
+
+        .drop-zone {
+            flex-grow: 1;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .drop-zone.hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Feedback */
+        .correct {
+            background-color: var(--correct-green) !important;
+            border-color: var(--correct-green) !important;
+            color: white !important;
+        }
+
+        .wrong {
+            background-color: var(--wrong-red) !important;
+            border-color: var(--wrong-red) !important;
+            color: white !important;
+        }
+
+        /* Buttons */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-reset { background-color: #6c757d; }
+        .btn-solution { background-color: var(--primary-blue); }
+        button:hover { opacity: 0.9; }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .matrix {
+                grid-template-columns: 1fr;
+            }
+            .category-column {
+                min-height: 150px;
+            }
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Kategorien-Sortierung</h1>
+    
+    <div class="intro">
+        <strong>Anleitung:</strong> Ziehe die Adjektive in die richtige Spalte. Die Zuordnung erfolgt nach dem Konsonanten am Ende des Wortstamms.
+        <br>Du erhältst <strong>direktes Feedback</strong>: Grün = Richtig, Rot = Falsch.
+    </div>
+
+    <!-- Wort-Pool -->
+    <div id="wordPool" class="word-pool">
+        <!-- Wörter werden per JS eingefügt -->
+    </div>
+
+    <!-- Die Matrix -->
+    <div class="matrix">
+        <!-- Velare -->
+        <div class="category-column">
+            <div class="category-header velar-header">
+                Velare
+                <span>К, Г, Х</span>
+            </div>
+            <div class="drop-zone" data-type="velar" id="zone-velar"></div>
+        </div>
+
+        <!-- Zischlaute -->
+        <div class="category-column">
+            <div class="category-header sibilant-header">
+                Zischlaute
+                <span>Ж, Ш, Ч, Щ</span>
+            </div>
+            <div class="drop-zone" data-type="sibilant" id="zone-sibilant"></div>
+        </div>
+
+        <!-- Weiches N -->
+        <div class="category-column">
+            <div class="category-header soft-n-header">
+                Weiches
+                <span>Н (weich)</span>
+            </div>
+            <div class="drop-zone" data-type="soft-n" id="zone-soft-n"></div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="initGame()">Zurücksetzen</button>
+        <button class="btn-solution" onclick="showSolution()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    const adjectives = [
+        { text: "русский", type: "velar" },
+        { text: "высокий", type: "velar" },
+        { text: "дорогой", type: "velar" },
+        { text: "тихий", type: "velar" },
+        { text: "маленький", type: "velar" },
+        { text: "хороший", type: "sibilant" },
+        { text: "свежий", type: "sibilant" },
+        { text: "горячий", type: "sibilant" },
+        { text: "большой", type: "sibilant" },
+        { text: "следующий", type: "sibilant" },
+        { text: "синий", type: "soft-n" },
+        { text: "летний", type: "soft-n" },
+        { text: "домашний", type: "soft-n" },
+        { text: "последний", type: "soft-n" },
+        { text: "вечерний", type: "soft-n" }
+    ];
+
+    let draggedItem = null;
+
+    function initGame() {
+        const pool = document.getElementById('wordPool');
+        const zones = document.querySelectorAll('.drop-zone');
+        
+        // Clear everything
+        pool.innerHTML = '';
+        zones.forEach(zone => zone.innerHTML = '');
+
+        // Shuffle adjectives
+        const shuffled = [...adjectives].sort(() => Math.random() - 0.5);
+
+        shuffled.forEach((adj, index) => {
+            const item = document.createElement('div');
+            item.className = 'drag-item';
+            item.innerText = adj.text;
+            item.draggable = true;
+            item.id = 'adj-' + index;
+            item.dataset.type = adj.type;
+
+            item.addEventListener('dragstart', handleDragStart);
+            item.addEventListener('dragend', handleDragEnd);
+            
+            pool.appendChild(item);
+        });
+    }
+
+    // Drag and Drop Handlers
+    function handleDragStart(e) {
+        draggedItem = this;
+        setTimeout(() => this.style.display = 'none', 0);
+    }
+
+    function handleDragEnd(e) {
+        setTimeout(() => this.style.display = 'block', 0);
+        draggedItem = null;
+    }
+
+    document.querySelectorAll('.drop-zone').forEach(zone => {
+        zone.addEventListener('dragover', e => {
+            e.preventDefault();
+            zone.classList.add('hover');
+        });
+
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('hover');
+        });
+
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('hover');
+            
+            const type = zone.getAttribute('data-type');
+            
+            if (draggedItem) {
+                zone.appendChild(draggedItem);
+                
+                // Direct Feedback
+                if (draggedItem.dataset.type === type) {
+                    draggedItem.classList.add('correct');
+                    draggedItem.classList.remove('wrong');
+                } else {
+                    draggedItem.classList.add('wrong');
+                    draggedItem.classList.remove('correct');
+                }
+            }
+        });
+    });
+
+    // Reset Pool Drop Handler (to move items back to pool)
+    const wordPool = document.getElementById('wordPool');
+    wordPool.addEventListener('dragover', e => e.preventDefault());
+    wordPool.addEventListener('drop', e => {
+        e.preventDefault();
+        if (draggedItem) {
+            wordPool.appendChild(draggedItem);
+            draggedItem.classList.remove('correct', 'wrong');
+        }
+    });
+
+    function showSolution() {
+        adjectives.forEach((adj, index) => {
+            const item = document.getElementById('adj-' + index) || createGhostItem(adj);
+            const targetZone = document.getElementById('zone-' + adj.type);
+            
+            targetZone.appendChild(item);
+            item.classList.add('correct');
+            item.classList.remove('wrong');
+        });
+    }
+
+    function createGhostItem(adj) {
+        // Fallback falls ein Item gelöscht wurde (nicht im Standard-Spielverlauf)
+        const item = document.createElement('div');
+        item.className = 'drag-item';
+        item.innerText = adj.text;
+        return item;
+    }
+
+    // Start Game
+    window.onload = initGame;
+</script>
+
+</body>
+</html>
